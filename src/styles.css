@@ -14,7 +14,7 @@ body { margin: 0; min-width: 320px; }
 button { font: inherit; cursor: pointer; }
 .page-shell { min-height: 100svh; position: relative; overflow: hidden; isolation: isolate; background: linear-gradient(180deg,#f3ead8 0%,#e9e3ce 62%,#c7d6bf 100%); }
 .landscape { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
-.sun { position: absolute; width: 220px; height: 220px; border-radius: 50%; background: #e8b86d; top: 18%; right: 17%; opacity: .8; box-shadow: 0 0 0 22px rgba(232,184,109,.12),0 0 0 48px rgba(232,184,109,.08); }
+.sun { --sun-radius: clamp(70px, 11vw, 110px); position: absolute; width: clamp(140px, 22vw, 220px); height: clamp(140px, 22vw, 220px); border-radius: 50%; background: #e8b86d; left: clamp(var(--sun-radius), var(--sun-x), calc(100% - var(--sun-radius))); top: var(--sun-y); transform: translate(-50%, -50%); opacity: .8; box-shadow: 0 0 0 22px rgba(232,184,109,.12),0 0 0 48px rgba(232,184,109,.08); }
 .cloud { position: absolute; height: 35px; width: 130px; border-radius: 50px; background: rgba(255,255,255,.72); filter: drop-shadow(0 5px 2px rgba(69,91,76,.04)); }
 .cloud i { position: absolute; display: block; background: inherit; border-radius: 50%; }
 .cloud i:nth-child(1) { width: 48px;height:48px;left:20px;bottom:0; }

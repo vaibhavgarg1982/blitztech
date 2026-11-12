@@ -946,10 +946,12 @@ function Landscape() {
 
 The landscape is made from:
 
-- CSS circles for the sun.
+- A CSS circle for the sun, positioned on a decorative arc using the browser's local time. It moves from left to right between 7 a.m. and 7 p.m., reaches its highest point at midday, and stays at the horizon endpoints outside those hours.
 - CSS rounded shapes for clouds.
 - Inline SVG paths for the hills.
 - Text symbols for flowers and birds.
+
+The sun's horizontal position is clamped so the whole circle stays within the viewport. This is a visual time-of-day effect, not a calculation of the sun's real position or a location-based sunrise and sunset.
 
 The hills use SVG because SVG is good at drawing scalable shapes:
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, ArrowUpRight, Menu, X, Sparkles } from "lucide-react";
@@ -65,10 +65,32 @@ const cardVariants = {
   exit: { opacity: 0, y: -12, transition: { duration: 0.16 } }
 };
 
+function getSunPosition() {
+  const now = new Date();
+  const minutes = now.getHours() * 60 + now.getMinutes();
+  const progress = Math.max(0, Math.min(1, (minutes - 7 * 60) / (12 * 60)));
+  const elevation = Math.sin(Math.PI * progress);
+
+  return {
+    "--sun-x": `${progress * 100}%`,
+    "--sun-y": `${50 - elevation * 35}%`
+  };
+}
+
 function Landscape() {
+  const [sunPosition, setSunPosition] = useState(getSunPosition);
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setSunPosition(getSunPosition());
+    }, 60_000);
+
+    return () => window.clearInterval(intervalId);
+  }, []);
+
   return (
     <div className="landscape" aria-hidden="true">
-      <div className="sun" />
+      <div className="sun" style={sunPosition} />
       <div className="cloud cloud-one"><i /><i /><i /></div>
       <div className="cloud cloud-two"><i /><i /><i /></div>
       <svg className="hills" viewBox="0 0 1440 430" preserveAspectRatio="none">

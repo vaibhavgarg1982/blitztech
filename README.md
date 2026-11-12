@@ -8,12 +8,12 @@ The user can:
 
 1. View the landing page.
 2. Open the navigation menu.
-3. Choose one of four top-level sections.
+3. Choose one of five top-level sections.
 4. Choose an item inside that section.
 5. Either open an external destination or view a placeholder destination panel.
 6. Go back one level or close the menu completely.
 
-This is currently a **front-end prototype**, with an optional Flask server that serves the built website unchanged. It does not fetch dynamic data from a server. Most destination panels are still previews, while selected items can now open external URLs configured in the local React data.
+This is currently a **front-end prototype** served by Flask. React fetches navigation content from Flask's `/api/navigation` endpoint. Most destination panels are still previews, while selected items open external URLs configured in the server-side `navigation.json` file.
 
 The main technologies are:
 
@@ -23,7 +23,7 @@ The main technologies are:
 - **CSS**: Defines layout, colours, typography, responsive behavior, and the illustrated background.
 - **Framer Motion**: Adds entrance, exit, hover, tap, and overlay animations.
 - **Lucide React**: Provides the arrow, menu, close, back, and sparkle icons.
-- **Flask**: Optionally serves the built HTML, JavaScript, and CSS from Python.
+- **Flask**: Serves the built website and navigation content from Python.
 
 ---
 
@@ -34,6 +34,9 @@ The project is intentionally small:
 ```text
 retro-navigation-prototype/
 ├── app.py
+├── navigation.json
+├── test_app.py
+├── vite.config.js
 ├── index.html
 ├── package.json
 ├── pyproject.toml
@@ -100,7 +103,7 @@ The important development dependency is:
 
 This is the application's JavaScript and JSX entry point. It contains:
 
-- The navigation content.
+- Fetching navigation content and handling loading or errors.
 - Animation definitions.
 - The `Landscape` component.
 - The `CassetteCard` component.
@@ -159,6 +162,8 @@ http://localhost:5173/
 ```
 
 Open that URL in a browser. Vite watches the source files and refreshes the browser when files change.
+Also run `uv run app.py` in a second terminal: `vite.config.js` forwards `/api`
+requests to Flask at `http://127.0.0.1:5050`. Restart Vite after changing its config.
 
 ### Build for production
 
@@ -174,7 +179,8 @@ Vite creates a `dist` folder containing the production files.
 npm run preview
 ```
 
-This is useful for checking the output produced by `npm run build`.
+This serves the built files only. To check the complete application, including
+the navigation API, use Flask as described below instead.
 
 ### Serve the website with Flask
 
@@ -192,11 +198,13 @@ press Ctrl+C to stop the server. Vite does not need to be running alongside Flas
 
 `app.py` serves `dist/index.html` at `/` and the generated files at `/assets/...`.
 The build stays together in `dist`; nothing goes into a Flask `templates` directory.
-Flask does not inject data, use Jinja templates, or change the React interface.
+Flask does not use Jinja templates. React separately fetches `/api/navigation`,
+which reads `navigation.json` on every request and returns JSON without caching.
 
 After editing the frontend, run `npm run build` again and refresh the browser.
-For automatic frontend updates while developing, continue using `npm run dev`
-instead. The Python server resolves `dist` relative to `app.py`, not the terminal's
+Edits to `navigation.json` need only a browser refresh, not a rebuild or server
+restart. For automatic frontend updates while developing, use `npm run dev`
+alongside Flask. The Python server resolves `dist` relative to `app.py`, not the terminal's
 working directory.
 
 uv manages the virtual environment and can download a compatible Python runtime
@@ -204,6 +212,8 @@ if needed. Add future Python dependencies with `uv add <package>`; commit both
 `pyproject.toml` and `uv.lock` to keep installations reproducible. The server
 prints a clear error if the frontend has not been built. Flask's built-in server
 is for local development and this demonstration, not a production deployment.
+
+Run the backend's focused tests with `uv run python -m unittest test_app`.
 
 ---
 
@@ -255,7 +265,7 @@ A component is a JavaScript function that returns JSX. This project has four mai
 3. `DetailCard`
 4. `App`
 
-The components are reusable pieces of the interface. For example, `CassetteCard` represents one top-level category, and React renders it four times using the four entries in `navigation`.
+The components are reusable pieces of the interface. For example, `CassetteCard` represents one top-level category, and React renders it once for each entry in `navigation`.
 
 ### React entry point
 
@@ -275,26 +285,34 @@ This means:
 
 ## 5. The navigation data
 
-The `navigation` constant is the single source of truth for the menu content:
+`navigation.json` is the single source of truth for the menu content. It uses
+JSON syntax (double-quoted keys and strings, with no trailing commas):
 
-```jsx
-const navigation = [
+```json
+[
   {
-    id: "discover",
-    number: "01",
-    title: "Discover",
-    note: "Find your next rabbit hole",
-    color: "peach",
-    items: [
+    "id": "discover",
+    "number": "01",
+    "title": "Discover",
+    "note": "Find your next rabbit hole",
+    "color": "peach",
+    "items": [
       {
-        title: "What's on",
-        description: "A quick look at everything happening.",
-        tag: "OVERVIEW"
+        "title": "What's on",
+        "description": "A quick look at everything happening.",
+        "tag": "OVERVIEW"
       }
     ]
   }
-];
+]
 ```
+
+On page load, React calls `fetch("/api/navigation")` once and stores the result
+in its `navigation` state. The menu shows a loading message while waiting and
+an explicit error if the request or data is invalid; it never silently falls
+back to hardcoded content. Refresh after fixing an error to try again.
+The component examples below use this fetched state; older JavaScript object
+snippets illustrate the data shape, not literal JSON to paste into the file.
 
 Each top-level section has:
 
@@ -313,7 +331,8 @@ Each item has:
 
 ### Changing the menu content
 
-To change the labels or add entries, edit the `navigation` array near the top of `src/main.jsx`.
+To change the labels or add entries, edit the array in `navigation.json`, then
+refresh the browser. The landing-page text remains in `src/main.jsx`.
 
 For a new section, copy an existing section and change its `id`, `number`, `title`, `note`, `color`, and `items`.
 
@@ -352,12 +371,13 @@ activeSection === null
 selectedItem === null
 ```
 
-The user sees the four large cassette-style category cards:
+The user sees the five large cassette-style category cards:
 
 - Discover
 - Create
 - Community
 - Plan your visit
+- Enjoy
 
 They are created with:
 
@@ -691,7 +711,7 @@ The following sections explain each use.
 
 ### `CassetteCard`: top-level category cards
 
-The four large category cards are created in the `CassetteCard` component:
+The top-level category cards are created in the `CassetteCard` component:
 
 ```jsx
 <motion.button
@@ -1156,7 +1176,7 @@ Potential future improvements include focus management when the overlay opens, r
 
 ### Change text
 
-Edit the relevant text in `src/main.jsx`. Menu content belongs in `navigation`; landing-page text is inside `App`.
+Edit menu text in `navigation.json`; landing-page text is inside `App` in `src/main.jsx`.
 
 ### Add a new subsection
 
@@ -1174,7 +1194,7 @@ No component change is needed because the existing `.map()` renders all items au
 
 ### Add a new top-level section
 
-Add a new object to `navigation`. Use a unique `id` and add a matching background class if using a new colour name.
+Add a new object to `navigation.json`. Use a unique `id` and add a matching background class if using a new colour name.
 
 ### Change a card colour
 
@@ -1200,7 +1220,7 @@ Items without an `externalUrl` use this branch. Replace the placeholder content 
 
 ### Add an external destination
 
-Add `externalUrl` to the desired item in the `navigation` array:
+Add `externalUrl` to the desired item in `navigation.json` (use double-quoted JSON keys):
 
 ```jsx
 {
@@ -1368,7 +1388,7 @@ React renders `App` again. The `menuOpen && (...)` condition is now true, so the
 )}
 ```
 
-`navigation.map(...)` creates four `CassetteCard` components. Each card receives an `onClick` callback that remembers that card's section ID.
+`navigation.map(...)` creates one `CassetteCard` component per section. Each card receives an `onClick` callback that remembers that card's section ID.
 
 ### Step 3: Framer Motion animates the cassette cards
 
@@ -1694,7 +1714,7 @@ After the 0.25-second fade-out, the overlay is removed. The landing page is visi
 
 ### Keep content and presentation separate
 
-Put menu content in `navigation`. Put visual rules in `styles.css`. Avoid embedding a one-off colour or layout rule inside a component when the stylesheet can express it.
+Put menu content in `navigation.json`. Put visual rules in `styles.css`. Avoid embedding a one-off colour or layout rule inside a component when the stylesheet can express it.
 
 ### Prefer existing components
 
@@ -1757,7 +1777,7 @@ Before handing this project to another developer:
 These are intentional prototype limitations, not missing setup steps:
 
 - Most destination panels are placeholders rather than real pages; three example items currently link to Google, Bing, and MNIT.
-- The optional Flask backend only serves the built website; there is no data API.
+- Flask serves the built website and a read-only navigation API backed by a JSON file.
 - There is no database.
 - There is no routing library.
 - The Escape key is displayed but not wired up.

@@ -1,0 +1,64 @@
+[
+  {
+    "id": "discover",
+    "number": "01",
+    "title": "Discover",
+    "note": "Find your next rabbit hole",
+    "color": "peach",
+    "items": [
+      { "title": "What's on", "description": "A quick look at everything happening.", "tag": "OVERVIEW" },
+      { "title": "The line-up", "description": "Browse the full programme and schedule.", "tag": "PROGRAMME", "externalUrl": "https://www.google.com" },
+      { "title": "Places to go", "description": "Explore spaces, stages and experiences.", "tag": "VENUES" },
+      { "title": "The field guide", "description": "A curated list of ideas, people and things.", "tag": "GUIDE" }
+    ]
+  },
+  {
+    "id": "create",
+    "number": "02",
+    "title": "Create",
+    "note": "Ideas become things",
+    "color": "mint",
+    "items": [
+      { "title": "Workshops", "description": "Get hands-on and learn by making.", "tag": "LEARN", "externalUrl": "https://www.bing.com" },
+      { "title": "Challenges", "description": "Put your skills to the test.", "tag": "COMPETE" },
+      { "title": "Showcase", "description": "See what the community has made.", "tag": "EXPLORE" }
+    ]
+  },
+  {
+    "id": "community",
+    "number": "03",
+    "title": "Community",
+    "note": "Good things happen together",
+    "color": "lilac",
+    "items": [
+      { "title": "People", "description": "Meet the people behind the ideas.", "tag": "TEAM", "externalUrl": "https://www.mnit.ac.in" },
+      { "title": "Partners", "description": "The friends who make it possible.", "tag": "NETWORK" },
+      { "title": "Get involved", "description": "Find your way into the community.", "tag": "JOIN IN" }
+    ]
+  },
+  {
+    "id": "visit",
+    "number": "04",
+    "title": "Plan your visit",
+    "note": "Make a day of it",
+    "color": "butter",
+    "items": [
+      { "title": "Getting here", "description": "Routes, transport and arrival info.", "tag": "TRAVEL" },
+      { "title": "FAQs", "description": "Useful answers before you set off.", "tag": "HELP" },
+      { "title": "Contact", "description": "Need a hand? Talk to the team.", "tag": "SAY HELLO" }
+    ]
+  },
+
+  {
+    "id": "Enjoy",
+    "number": "05",
+    "title": "Enjoy",
+    "note": "Make the most of it",
+    "color": "lilac",
+    "items": [
+      { "title": "Workshops", "description": "Get hands-on and learn by making.", "tag": "LEARN", "externalUrl": "https://www.bing.com" },
+      { "title": "Challenges", "description": "Put your skills to the test.", "tag": "COMPETE" },
+      { "title": "Showcase", "description": "See what the community has made.", "tag": "EXPLORE" }
+    ]
+  }
+]

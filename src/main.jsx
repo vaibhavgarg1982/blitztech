@@ -4,57 +4,17 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, ArrowUpRight, Menu, X, Sparkles } from "lucide-react";
 import "./styles.css";
 
-const navigation = [
-  {
-    id: "discover",
-    number: "01",
-    title: "Discover",
-    note: "Find your next rabbit hole",
-    color: "peach",
-    items: [
-      { title: "What's on", description: "A quick look at everything happening.", tag: "OVERVIEW" },
-      { title: "The line-up", description: "Browse the full programme and schedule.", tag: "PROGRAMME", externalUrl: "https://www.google.com" },
-      { title: "Places to go", description: "Explore spaces, stages and experiences.", tag: "VENUES" },
-      { title: "The field guide", description: "A curated list of ideas, people and things.", tag: "GUIDE" }
-    ]
-  },
-  {
-    id: "create",
-    number: "02",
-    title: "Create",
-    note: "Ideas become things",
-    color: "mint",
-    items: [
-      { title: "Workshops", description: "Get hands-on and learn by making.", tag: "LEARN", externalUrl: "https://www.bing.com" },
-      { title: "Challenges", description: "Put your skills to the test.", tag: "COMPETE" },
-      { title: "Showcase", description: "See what the community has made.", tag: "EXPLORE" }
-    ]
-  },
-  {
-    id: "community",
-    number: "03",
-    title: "Community",
-    note: "Good things happen together",
-    color: "lilac",
-    items: [
-      { title: "People", description: "Meet the people behind the ideas.", tag: "TEAM", externalUrl: "https://www.mnit.ac.in" },
-      { title: "Partners", description: "The friends who make it possible.", tag: "NETWORK" },
-      { title: "Get involved", description: "Find your way into the community.", tag: "JOIN IN" }
-    ]
-  },
-  {
-    id: "visit",
-    number: "04",
-    title: "Plan your visit",
-    note: "Make a day of it",
-    color: "butter",
-    items: [
-      { title: "Getting here", description: "Routes, transport and arrival info.", tag: "TRAVEL" },
-      { title: "FAQs", description: "Useful answers before you set off.", tag: "HELP" },
-      { title: "Contact", description: "Need a hand? Talk to the team.", tag: "SAY HELLO" }
-    ]
-  }
-];
+function isNavigation(data) {
+  return Array.isArray(data) && data.every((section) =>
+    section &&
+    ["id", "number", "title", "note", "color"].every((key) => typeof section[key] === "string") &&
+    Array.isArray(section.items) && section.items.every((item) =>
+      item &&
+      ["title", "description", "tag"].every((key) => typeof item[key] === "string") &&
+      (item.externalUrl === undefined || typeof item.externalUrl === "string")
+    )
+  );
+}
 
 const cardVariants = {
   hidden: { opacity:  0, y: 24, rotate: 1.5 },
@@ -159,9 +119,36 @@ function DetailCard({ item, index, onChoose }) {
 }
 
 function App() {
+  const [navigation, setNavigation] = useState([]);
+  const [navigationLoading, setNavigationLoading] = useState(true);
+  const [navigationError, setNavigationError] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function loadNavigation() {
+      try {
+        const response = await fetch("/api/navigation", { signal: controller.signal });
+        if (!response.ok) throw new Error(`Navigation request failed (HTTP ${response.status}).`);
+        const data = await response.json();
+        if (!isNavigation(data)) throw new Error("The server returned invalid navigation data.");
+        setNavigation(data);
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          console.error("Could not load navigation:", error);
+          setNavigationError("Could not load the navigation. Check that Flask is running, then refresh the page.");
+        }
+      } finally {
+        if (!controller.signal.aborted) setNavigationLoading(false);
+      }
+    }
+
+    loadNavigation();
+    return () => controller.abort();
+  }, []);
 
   const active = navigation.find((section) => section.id === activeSection);
 
@@ -220,7 +207,11 @@ function App() {
 
             <div className="menu-content">
               <AnimatePresence mode="wait">
-                {selectedItem ? (
+                {navigationLoading ? (
+                  <p key="loading" role="status">Loading navigation...</p>
+                ) : navigationError ? (
+                  <p key="error" role="alert">{navigationError}</p>
+                ) : selectedItem ? (
                   <motion.div key="selected" className="selected-panel" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}>
                     <div className="selected-stamp">{selectedItem.tag}</div>
                     <h3>{selectedItem.title}</h3>

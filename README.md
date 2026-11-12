@@ -13,7 +13,7 @@ The user can:
 5. Either open an external destination or view a placeholder destination panel.
 6. Go back one level or close the menu completely.
 
-This is currently a **front-end prototype**. It does not load data from a server. Most destination panels are still previews, while selected items can now open external URLs configured in the local React data.
+This is currently a **front-end prototype**, with an optional Flask server that serves the built website unchanged. It does not fetch dynamic data from a server. Most destination panels are still previews, while selected items can now open external URLs configured in the local React data.
 
 The main technologies are:
 
@@ -23,6 +23,7 @@ The main technologies are:
 - **CSS**: Defines layout, colours, typography, responsive behavior, and the illustrated background.
 - **Framer Motion**: Adds entrance, exit, hover, tap, and overlay animations.
 - **Lucide React**: Provides the arrow, menu, close, back, and sparkle icons.
+- **Flask**: Optionally serves the built HTML, JavaScript, and CSS from Python.
 
 ---
 
@@ -32,8 +33,11 @@ The project is intentionally small:
 
 ```text
 retro-navigation-prototype/
+├── app.py
 ├── index.html
 ├── package.json
+├── pyproject.toml
+├── uv.lock
 ├── README.md
 ├── explanation.md
 └── src/
@@ -171,6 +175,35 @@ npm run preview
 ```
 
 This is useful for checking the output produced by `npm run build`.
+
+### Serve the website with Flask
+
+Install **uv** as well as Node.js. From the project directory, install the locked
+Python dependencies, build the frontend, and start Flask (Windows PowerShell):
+
+```powershell
+uv sync
+npm run build
+uv run app.py
+```
+
+Open **http://localhost:5050/**. Keep that terminal running while using the site;
+press Ctrl+C to stop the server. Vite does not need to be running alongside Flask.
+
+`app.py` serves `dist/index.html` at `/` and the generated files at `/assets/...`.
+The build stays together in `dist`; nothing goes into a Flask `templates` directory.
+Flask does not inject data, use Jinja templates, or change the React interface.
+
+After editing the frontend, run `npm run build` again and refresh the browser.
+For automatic frontend updates while developing, continue using `npm run dev`
+instead. The Python server resolves `dist` relative to `app.py`, not the terminal's
+working directory.
+
+uv manages the virtual environment and can download a compatible Python runtime
+if needed. Add future Python dependencies with `uv add <package>`; commit both
+`pyproject.toml` and `uv.lock` to keep installations reproducible. The server
+prints a clear error if the frontend has not been built. Flask's built-in server
+is for local development and this demonstration, not a production deployment.
 
 ---
 
@@ -1724,7 +1757,7 @@ Before handing this project to another developer:
 These are intentional prototype limitations, not missing setup steps:
 
 - Most destination panels are placeholders rather than real pages; three example items currently link to Google, Bing, and MNIT.
-- There is no backend or API.
+- The optional Flask backend only serves the built website; there is no data API.
 - There is no database.
 - There is no routing library.
 - The Escape key is displayed but not wired up.
